@@ -1,0 +1,6 @@
+../Core/Src/read.c:35:10:map	16	static
+../Core/Src/read.c:40:10:filter_ch	32	static
+../Core/Src/read.c:46:6:read_pwm	368	static
+../Core/Src/read.c:489:6:convert	16	static
+../Core/Src/read.c:734:6:direction	24	static
+../Core/Src/read.c:771:6:control	8	static
