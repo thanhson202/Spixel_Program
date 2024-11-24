@@ -16,7 +16,7 @@ extern TIM_HandleTypeDef htim1;
 uint32_t read1_out, read2_out, read3_out, read4_out, read5_out, read6_out,
 		 read7_out, read8_out, read9_out, read10_out,read11_out;
 
-uint32_t read2_check,read1_check;
+uint32_t read2_check,read1_check,action;
 
 int save,val,limit_value;
 int running;
@@ -519,101 +519,101 @@ void read_pwm(int val_ch)
 
 void convert(void)
 {
-		if(read_1.out > 43200)
-		{
-			read1_out = map(read_1.out,43200,61200,28700,0);
-			val = 1;
-			change = 1;
+	if(read_1.out > 43200)
+	{
+		read1_out = map(read_1.out,43200,61200,28700,0);
+		val = 1;
+		change = 1;
 
-		}
-		else if(read_1.out < 43200)
+	}
+	else if(read_1.out < 43200)
+	{
+		read1_out = map(read_1.out,7000,43200,0,28700);
+		val = 2;
+		change = 2;
+	}
+	else
+	{
+		read1_out = 28700;
+	}
+
+	//ch2 tien lui banh
+	if(read_2.out > 43250)
+	{
+		read2_out = map(read_2.out,43250,61200,28700,0);
+		val = 3;
+		change = 3;
+
+	}
+	else if((read_2.out < 43250))//||((read1_out>read2_out)&&(read_2.out < 43250))
+	{
+		read2_out = map(read_2.out,7000,43250,0,28700);
+		val = 4;
+		change = 4;
+
+	}
+	else
+	{
+		read2_out = 28700;
+	}
+
+	//////// JOYSTIK GIUA
+	if(read_1.out != 43200 && read_2.out != 43250)
+	{
+		limit_value = 1;
+	}
+	else
+	{
+		limit_value = 0;
+	}
+	if(limit_value == 1)
+	{
+		if((val ==4)&&(read_1.out>read_2.out)&&(read_1.out<55000))//(read_1.out > 43200)
 		{
-			read1_out = map(read_1.out,7000,43200,0,28700);
+			val =4;
+		}
+		else if((read_1.out < read_2.out)&&(read_1.out<10000))//(read_1.out < 43200)
+		{
 			val = 2;
-			change = 2;
+		}
+		else if((read_1.out>read_2.out)&&(change = 1))//(read_1.out > 43200)
+		{
+			val = 1;
 		}
 		else
+		{
+			val=3;
+		}
+		/*
+		if(((change ==4)&&(read_1.out>read_2.out)&&(read_1.out<55000))||
+		   ((change ==3)&&(read_1.out<read_2.out)&&(read_2.out>55000)))
 		{
 			read1_out = 28700;
-		}
-
-		//ch2 tien lui banh
-		if(read_2.out > 43250)
-		{
-			read2_out = map(read_2.out,43250,61200,28700,0);
-			val = 3;
-			change = 3;
 
 		}
-		else if((read_2.out < 43250))//||((read1_out>read2_out)&&(read_2.out < 43250))
-		{
-			read2_out = map(read_2.out,7000,43250,0,28700);
-			val = 4;
-			change = 4;
-
-		}
-		else
+		else if(read1_out!=28700)
 		{
 			read2_out = 28700;
+			val = 1;
 		}
-
-		//////// JOYSTIK GIUA
-		if(read_1.out != 43200 && read_2.out != 43250)
+		*/
+		if(read_1.out == 7000 && read_2.out==7000)
 		{
-			limit_value = 1;
+			val =17;
 		}
-		else
+		else if(read_1.out == 61200 && read_2.out == 7000)
 		{
-			limit_value = 0;
+			val = 18;
 		}
-		if(limit_value == 1)
+		else if (read_1.out == 7000 && read_2.out ==61200)
 		{
-			if((val ==4)&&(read_1.out>read_2.out)&&(read_1.out<55000))//(read_1.out > 43200)
-			{
-				val =4;
-			}
-			else if((read_1.out < read_2.out)&&(read_1.out<10000))//(read_1.out < 43200)
-			{
-				val = 2;
-			}
-			else if((read_1.out>read_2.out)&&(change = 1))//(read_1.out > 43200)
-			{
-				val = 1;
-			}
-			else
-			{
-				val=3;
-			}
-			/*
-			if(((change ==4)&&(read_1.out>read_2.out)&&(read_1.out<55000))||
-			   ((change ==3)&&(read_1.out<read_2.out)&&(read_2.out>55000)))
-			{
-				read1_out = 28700;
-
-			}
-			else if(read1_out!=28700)
-			{
-				read2_out = 28700;
-				val = 1;
-			}
-			*/
-			if(read_1.out == 7000 && read_2.out==7000)
-			{
-				val =17;
-			}
-			else if(read_1.out == 61200 && read_2.out == 7000)
-			{
-				val = 18;
-			}
-			else if (read_1.out == 7000 && read_2.out ==61200)
-			{
-				val = 19;
-			}
-			else if (read_1.out == 61200 && read_2.out ==61200)
-			{
-				val = 20;
-			}
+			val = 19;
 		}
+		else if (read_1.out == 61200 && read_2.out ==61200)
+		{
+			val = 20;
+		}
+	}
 		//////////////////++++++end+++++/////////////////
 
 }
@@ -656,43 +656,64 @@ void direction(int running,uint32_t speed_CCR1,uint32_t speed_CCR2)
 
 void control(void)
 {
-
-	HAL_GPIO_WritePin(EN_1A_GPIO_Port, EN_1A_Pin, SET);
-	HAL_GPIO_WritePin(EN_1B_GPIO_Port, EN_1B_Pin, SET);
-	HAL_GPIO_WritePin(EN_2A_GPIO_Port, EN_2A_Pin, SET);
-	HAL_GPIO_WritePin(EN_2B_GPIO_Port, EN_2B_Pin, SET);
-
-	HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, SET);
-	HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, SET);
-	HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
-	HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
-
-	switch (val)
+	if(read_1.out>8000&&read_1.out<10000&&read_2.out>28100&&read_2.out<29200)
 	{
-		case 1:
-				TIM3 -> CCR1 = read1_out; // DC TRAI
-				TIM3 -> CCR2 = read1_out; // DC PHAI
-				HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, RESET);
-				HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, SET);
-				break;
-		case 2:
-				TIM3 -> CCR1 = read1_out; // DC TRAI
-				TIM3 -> CCR2 = read1_out; // DC PHAI
-				HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, SET);
-				HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, RESET);
-				break;
-		case 3:
-				TIM3 -> CCR1 = read2_out; // DC TRAI
-				TIM3 -> CCR2 = read2_out; // DC PHAI
-				HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, SET);
-				HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, SET);
-				break;
-		case 4:
-				TIM3 -> CCR1 = read2_out; // DC TRAI
-				TIM3 -> CCR2 = read2_out; // DC PHAI
-				HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, RESET);
-				HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, RESET);
-				break;
 
+		run =0;
+		HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, RESET);
+		HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, RESET);
+		HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, RESET);
+		HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, RESET);
+
+		HAL_GPIO_WritePin(EN_1A_GPIO_Port, EN_1A_Pin, RESET);
+		HAL_GPIO_WritePin(EN_1B_GPIO_Port, EN_1B_Pin, RESET);
+		HAL_GPIO_WritePin(EN_2A_GPIO_Port, EN_2A_Pin, RESET);
+		HAL_GPIO_WritePin(EN_2B_GPIO_Port, EN_2B_Pin, RESET);
+
+		HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, SET);
+		HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, SET);
+		HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
+		HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
+	}
+	else
+	{
+		run =1;
+		HAL_GPIO_WritePin(EN_1A_GPIO_Port, EN_1A_Pin, SET);
+		HAL_GPIO_WritePin(EN_1B_GPIO_Port, EN_1B_Pin, SET);
+		HAL_GPIO_WritePin(EN_2A_GPIO_Port, EN_2A_Pin, SET);
+		HAL_GPIO_WritePin(EN_2B_GPIO_Port, EN_2B_Pin, SET);
+
+		HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, SET);
+		HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, SET);
+		HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
+		HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
+
+		switch (val)
+		{
+			case 1:
+					TIM3 -> CCR1 = read1_out; // DC TRAI
+					TIM3 -> CCR2 = read1_out; // DC PHAI
+					HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, RESET);
+					HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, SET);
+					break;
+			case 2:
+					TIM3 -> CCR1 = read1_out; // DC TRAI
+					TIM3 -> CCR2 = read1_out; // DC PHAI
+					HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, SET);
+					HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, RESET);
+					break;
+			case 3:
+					TIM3 -> CCR1 = read2_out; // DC TRAI
+					TIM3 -> CCR2 = read2_out; // DC PHAI
+					HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, SET);
+					HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, SET);
+					break;
+			case 4:
+					TIM3 -> CCR1 = read2_out; // DC TRAI
+					TIM3 -> CCR2 = read2_out; // DC PHAI
+					HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, RESET);
+					HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, RESET);
+					break;
+		}
 	}
 }

@@ -3,4 +3,4 @@
 ../Core/Src/read.c:71:6:read_pwm	68
 ../Core/Src/read.c:520:6:convert	22
 ../Core/Src/read.c:620:6:direction	5
-../Core/Src/read.c:657:6:control	5
+../Core/Src/read.c:657:6:control	9
