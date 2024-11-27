@@ -13,22 +13,26 @@
 
 
 extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim6;
 uint32_t read1_out, read2_out, read3_out, read4_out, read5_out, read6_out,
 		 read7_out, read8_out, read9_out, read10_out,read11_out;
 
 uint32_t read2_check,read1_check,action;
 
+int Read_ss1,Read_ss2,Read_ss3,Read_ss4;
 int save,val,limit_value;
 int running;
-// vslue check
+int signal_ss;
 
-int run,change;
-int val_ch=0;
+int run,change,active;
 int size = 10;
 int count_ch1=0,count_ch2=0;
 uint32_t array_read_ch1[10],array_read_ch2[10];
 
 ///////
+
+
+////////////
 typedef struct
 {
 uint32_t start;
@@ -36,7 +40,8 @@ uint32_t end;
 uint32_t out;
 uint32_t check;
 } read;
-read read_1,read_2,read_3,read_4,read_5,read_6,read_7,read_8,read_9,read_10,read_11;
+read read_1,read_2,read_3,read_4,read_5,read_6,read_7,read_8,read_9,read_10,read_11,
+	 read_ss1,read_ss2,read_ss3,read_ss4;
 
 
 
@@ -48,7 +53,7 @@ uint16_t map(uint16_t x,uint16_t In_Max,uint16_t In_Min,uint16_t Out_Max,uint16_
 uint32_t media_filter(uint32_t* array_read, int size) {
 
 
-    uint32_t temp_array[10];
+    uint32_t temp_array[15];
     for (int i = 0; i < size; i++) {
         temp_array[i] = array_read[i];
     }
@@ -514,11 +519,120 @@ void read_pwm(int val_ch)
 						HAL_GPIO_Init(CH11_GPIO_Port, &GPIO_InitStruct);
 					}
 					break;
+			case 12:
+
+				if(HAL_GPIO_ReadPin(SS1_GPIO_Port, SS1_Pin)==0)
+				{
+					read_ss1.start = htim1.Instance -> CNT;
+					GPIO_InitTypeDef GPIO_InitStruct;
+					GPIO_InitStruct.Pin = SS1_Pin;
+					GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+					GPIO_InitStruct.Pull = GPIO_NOPULL;
+					HAL_GPIO_Init(SS1_GPIO_Port, &GPIO_InitStruct);
+					active =1;
+				}
+				else
+				{
+//					read_ss1.end = htim1.Instance->CNT;
+//
+//					if( read_ss1.start > read_ss1.end)
+//					{
+//						read_ss1.out = 65535 - read_ss1.start + read_ss1.end;
+//					}
+//					else
+//					{
+//						read_ss1.out = read_ss1.end - read_ss1.start;
+//					}
+
+					GPIO_InitTypeDef GPIO_InitStruct;
+					GPIO_InitStruct.Pin = SS1_Pin;
+					GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+					GPIO_InitStruct.Pull = GPIO_NOPULL;
+					HAL_GPIO_Init(SS1_GPIO_Port, &GPIO_InitStruct);
+				}
+				break;
+			case 13:
+
+				if(HAL_GPIO_ReadPin(SS2_GPIO_Port, SS2_Pin)==0)
+				{
+					active =1;
+					read_ss2.start = htim1.Instance -> CNT;
+					GPIO_InitTypeDef GPIO_InitStruct;
+					GPIO_InitStruct.Pin = SS2_Pin;
+					GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+					GPIO_InitStruct.Pull = GPIO_NOPULL;
+					HAL_GPIO_Init(SS2_GPIO_Port, &GPIO_InitStruct);
+					active =1;
+				}
+				else
+				{
+//					read_ss2.end = htim1.Instance->CNT;
+//
+//					if( read_ss2.start > read_ss2.end)
+//					{
+//						read_ss2.out = 65535 - read_ss2.start + read_ss2.end;
+//					}
+//					else
+//					{
+//						read_ss1.out = read_ss1.end - read_ss1.start;
+//					}
+
+					GPIO_InitTypeDef GPIO_InitStruct;
+					GPIO_InitStruct.Pin = SS2_Pin;
+					GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+					GPIO_InitStruct.Pull = GPIO_NOPULL;
+					HAL_GPIO_Init(SS2_GPIO_Port, &GPIO_InitStruct);
+				}
+				break;
+			case 14:
+
+				if(HAL_GPIO_ReadPin(SS3_GPIO_Port, SS3_Pin)==0)
+				{
+					active = 1;
+					read_ss3.start = htim1.Instance -> CNT;
+					GPIO_InitTypeDef GPIO_InitStruct;
+					GPIO_InitStruct.Pin = SS3_Pin;
+					GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+					GPIO_InitStruct.Pull = GPIO_NOPULL;
+					HAL_GPIO_Init(SS3_GPIO_Port, &GPIO_InitStruct);
+					active =1;
+				}
+				else
+				{
+
+					GPIO_InitTypeDef GPIO_InitStruct;
+					GPIO_InitStruct.Pin = SS3_Pin;
+					GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+					GPIO_InitStruct.Pull = GPIO_NOPULL;
+					HAL_GPIO_Init(SS3_GPIO_Port, &GPIO_InitStruct);
+				}
+			case 15:
+
+				if(HAL_GPIO_ReadPin(SS4_GPIO_Port, SS4_Pin)==0)
+				{
+					read_ss4.start = htim1.Instance -> CNT;
+					GPIO_InitTypeDef GPIO_InitStruct;
+					GPIO_InitStruct.Pin = SS4_Pin;
+					GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+					GPIO_InitStruct.Pull = GPIO_NOPULL;
+					HAL_GPIO_Init(SS4_GPIO_Port, &GPIO_InitStruct);
+					active =1;
+				}
+				else
+				{
+
+					GPIO_InitTypeDef GPIO_InitStruct;
+					GPIO_InitStruct.Pin = SS4_Pin;
+					GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+					GPIO_InitStruct.Pull = GPIO_NOPULL;
+					HAL_GPIO_Init(SS4_GPIO_Port, &GPIO_InitStruct);
+				}
 		}
 	}
 
 void convert(void)
 {
+	// xoay phai
 	if(read_1.out > 43200)
 	{
 		read1_out = map(read_1.out,43200,61200,28700,0);
@@ -526,6 +640,7 @@ void convert(void)
 		change = 1;
 
 	}
+	//xoay trai
 	else if(read_1.out < 43200)
 	{
 		read1_out = map(read_1.out,7000,43200,0,28700);
@@ -625,7 +740,7 @@ void direction(int running,uint32_t speed_CCR1,uint32_t speed_CCR2)
 		TIM3 -> CCR1 = speed_CCR1; // DC TRAI
 		TIM3 -> CCR2 = speed_CCR2; // DC PHAI
 		HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, RESET);
-		HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, RESET);
+		HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, SET);
 
 	}
 	//lui
@@ -634,14 +749,14 @@ void direction(int running,uint32_t speed_CCR1,uint32_t speed_CCR2)
 		TIM3 -> CCR1 = speed_CCR1; // DC TRAI
 		TIM3 -> CCR2 = speed_CCR2; // DC PHAI
 		HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, SET);
-		HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, SET);
+		HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, RESET);
 	}
 	// xoay trai
 	else if(running == 3)
 	{
 		TIM3 -> CCR1 = speed_CCR1; // DC TRAI
 		TIM3 -> CCR2 = speed_CCR2; // DC PHAI
-		HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, SET);
+		HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, RESET);
 		HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, RESET);
 	}
 	// xoay phai
@@ -649,16 +764,148 @@ void direction(int running,uint32_t speed_CCR1,uint32_t speed_CCR2)
 	{
 		TIM3 -> CCR1 = speed_CCR1; // DC TRAI
 		TIM3 -> CCR2 = speed_CCR2; // DC PHAI
-		HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, RESET);
+		HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, SET);
 		HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, SET);
+	}
+}
+
+void Status_SS(void)
+{
+	if(active ==1)
+	{
+		if( read_ss1.start > value_timer)
+		{
+			read_ss1.out = 65535 - read_ss1.start + value_timer;
+		}
+		else
+		{
+			read_ss1.out = value_timer - read_ss1.start;
+		}
+		if(read_ss1.out >= 2000)
+		{
+			active =0;
+			HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, RESET);
+			HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, RESET);
+			HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, RESET);
+			HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, RESET);
+
+			HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, SET);
+			HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, SET);
+			HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
+			HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
+
+			GPIO_InitTypeDef GPIO_InitStruct;
+			GPIO_InitStruct.Pin = SS1_Pin;
+			GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+			GPIO_InitStruct.Pull = GPIO_NOPULL;
+			HAL_GPIO_Init(SS1_GPIO_Port, &GPIO_InitStruct);
+
+			direction(2,22000,15000);// ss1: lui nhe sang phai
+			HAL_Delay(1000);
+		}
+		if( read_ss2.start > value_timer)
+		{
+			read_ss2.out = 65535 - read_ss2.start + value_timer;
+		}
+		else
+		{
+			read_ss2.out = value_timer - read_ss2.start;
+		}
+
+		if(read_ss2.out >= 2000)
+		{
+			active =0;
+			HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, RESET);
+			HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, RESET);
+			HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, RESET);
+			HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, RESET);
+
+			HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, SET);
+			HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, SET);
+			HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
+			HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
+
+			GPIO_InitTypeDef GPIO_InitStruct;
+			GPIO_InitStruct.Pin = SS2_Pin;
+			GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+			GPIO_InitStruct.Pull = GPIO_NOPULL;
+			HAL_GPIO_Init(SS2_GPIO_Port, &GPIO_InitStruct);
+
+			direction(2,15000+13000,22000);// ss1: lui nhe sang trai lui +13000
+			HAL_Delay(1000);
+		}
+		if( read_ss3.start > value_timer)
+		{
+			read_ss3.out = 65535 - read_ss3.start + value_timer;
+		}
+		else
+		{
+			read_ss3.out = value_timer - read_ss3.start;
+		}
+		if(read_ss3.out >= 2000)
+		{
+			active =0;
+			HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, RESET);
+			HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, RESET);
+			HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, RESET);
+			HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, RESET);
+
+			HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, SET);
+			HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, SET);
+			HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
+			HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
+
+			GPIO_InitTypeDef GPIO_InitStruct;
+			GPIO_InitStruct.Pin = SS3_Pin;
+			GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+			GPIO_InitStruct.Pull = GPIO_NOPULL;
+			HAL_GPIO_Init(SS3_GPIO_Port, &GPIO_InitStruct);
+
+			direction(1,22000,15000);// ss1: tien nhe sang phai
+			HAL_Delay(1000);
+		}
+
+		if( read_ss4.start > value_timer)
+		{
+			read_ss4.out = 65535 - read_ss4.start + value_timer;
+		}
+		else
+		{
+			read_ss4.out = value_timer - read_ss4.start;
+		}
+		if(read_ss4.out >= 2000)
+		{
+			active =0;
+			HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, RESET);
+			HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, RESET);
+			HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, RESET);
+			HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, RESET);
+
+			HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, SET);
+			HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, SET);
+			HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
+			HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
+
+			GPIO_InitTypeDef GPIO_InitStruct;
+			GPIO_InitStruct.Pin = SS4_Pin;
+			GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+			GPIO_InitStruct.Pull = GPIO_NOPULL;
+			HAL_GPIO_Init(SS4_GPIO_Port, &GPIO_InitStruct);
+
+			direction(1,15000,22000);// ss1: lui nhe sang trai
+			HAL_Delay(1000);
+		}
 	}
 }
 
 void control(void)
 {
-	if(read_1.out>8000&&read_1.out<10000&&read_2.out>28100&&read_2.out<29200)
+	Read_ss1 = HAL_GPIO_ReadPin(SS1_GPIO_Port, SS1_Pin);
+	Read_ss2 = HAL_GPIO_ReadPin(SS2_GPIO_Port, SS2_Pin);
+	Read_ss3 = HAL_GPIO_ReadPin(SS3_GPIO_Port, SS3_Pin);
+	Read_ss4 = HAL_GPIO_ReadPin(SS4_GPIO_Port, SS4_Pin);
+	if(read_1.out>7500&&read_1.out<10500&&read_2.out>27500&&read_2.out<29800)
 	{
-
 		run =0;
 		HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, RESET);
 		HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, RESET);
@@ -677,43 +924,51 @@ void control(void)
 	}
 	else
 	{
-		run =1;
-		HAL_GPIO_WritePin(EN_1A_GPIO_Port, EN_1A_Pin, SET);
-		HAL_GPIO_WritePin(EN_1B_GPIO_Port, EN_1B_Pin, SET);
-		HAL_GPIO_WritePin(EN_2A_GPIO_Port, EN_2A_Pin, SET);
-		HAL_GPIO_WritePin(EN_2B_GPIO_Port, EN_2B_Pin, SET);
-
-		HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, SET);
-		HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, SET);
-		HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
-		HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
-
-		switch (val)
+		if (Read_ss1 ==1 && Read_ss2 ==1 && Read_ss3 ==1 && Read_ss4==1)
 		{
-			case 1:
-					TIM3 -> CCR1 = read1_out; // DC TRAI
-					TIM3 -> CCR2 = read1_out; // DC PHAI
-					HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, RESET);
-					HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, SET);
+			run =1;
+			HAL_GPIO_WritePin(EN_1A_GPIO_Port, EN_1A_Pin, SET);
+			HAL_GPIO_WritePin(EN_1B_GPIO_Port, EN_1B_Pin, SET);
+			HAL_GPIO_WritePin(EN_2A_GPIO_Port, EN_2A_Pin, SET);
+			HAL_GPIO_WritePin(EN_2B_GPIO_Port, EN_2B_Pin, SET);
+
+			HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, SET);
+			HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, SET);
+			HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
+			HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
+
+			switch (val)
+			{
+				case 1:
+					direction(4,read1_out,read1_out);
 					break;
-			case 2:
-					TIM3 -> CCR1 = read1_out; // DC TRAI
-					TIM3 -> CCR2 = read1_out; // DC PHAI
-					HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, SET);
-					HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, RESET);
+				case 2:
+					direction(3,read1_out,read1_out);
 					break;
-			case 3:
-					TIM3 -> CCR1 = read2_out; // DC TRAI
-					TIM3 -> CCR2 = read2_out; // DC PHAI
-					HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, SET);
-					HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, SET);
+				case 3:
+					direction(2,read2_out+13000,read2_out);
 					break;
-			case 4:
-					TIM3 -> CCR1 = read2_out; // DC TRAI
-					TIM3 -> CCR2 = read2_out; // DC PHAI
-					HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, RESET);
-					HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, RESET);
+				case 4:
+					direction(1,read2_out,read2_out);
 					break;
+				case 17:
+					direction(1,read2_out,read2_out+18000);
+					break;
+				case 18:
+					direction(1,read2_out+18000,read2_out);
+					break;
+				case 19:
+					direction(2,read2_out,read2_out);
+					break;
+				case 20:
+					direction(2,read2_out+20000,read2_out);
+					break;
+			}
+
+		}
+		else
+		{
+			active  =1;
 		}
 	}
 }

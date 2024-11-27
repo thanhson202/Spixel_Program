@@ -27,7 +27,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+uint32_t value_timer;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -44,6 +44,7 @@
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim6;
 
 UART_HandleTypeDef huart1;
 
@@ -58,6 +59,7 @@ static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -122,7 +124,22 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		read_pwm(11);
 
 	}
-
+	else if(GPIO_Pin == SS1_Pin)
+	{
+		read_pwm(12);
+	}
+	else if(GPIO_Pin == SS2_Pin)
+	{
+		read_pwm(13);
+	}
+	else if(GPIO_Pin == SS3_Pin)
+	{
+		read_pwm(14);
+	}
+	else if(GPIO_Pin == SS4_Pin)
+	{
+		read_pwm(15);
+	}
 	convert();
 }
 
@@ -161,6 +178,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_USART1_UART_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
   // TIM2 BROOM
@@ -174,18 +192,7 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 
   HAL_TIM_Base_Start(&htim1);
-
-
-	HAL_GPIO_WritePin(EN_1A_GPIO_Port, EN_1A_Pin, SET);
-	HAL_GPIO_WritePin(EN_1B_GPIO_Port, EN_1B_Pin, SET);
-	HAL_GPIO_WritePin(EN_2A_GPIO_Port, EN_2A_Pin, SET);
-	HAL_GPIO_WritePin(EN_2B_GPIO_Port, EN_2B_Pin, SET);
-
-	HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, SET);
-	HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, SET);
-	HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
-	HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
-
+  HAL_TIM_Base_Start(&htim6);
 
   /* USER CODE END 2 */
 
@@ -196,14 +203,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//	  convert();
+	  value_timer = htim1.Instance -> CNT;
 	  control();
-//	  TIM3->CCR1 = 25000;
-//	  TIM3->CCR2 = 25000;
-//		TIM3 -> CCR1 = read2_out; // DC TRAI
-//		TIM3 -> CCR2 = 10000; // DC PHAI
-//		HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, SET);
-//		HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, SET);
 
   }
   /* USER CODE END 3 */
@@ -429,6 +430,44 @@ static void MX_TIM3_Init(void)
 }
 
 /**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 0;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 65535;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+
+  /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -508,7 +547,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : SS2_Pin SS3_Pin SS4_Pin */
   GPIO_InitStruct.Pin = SS2_Pin|SS3_Pin|SS4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
@@ -564,6 +603,9 @@ static void MX_GPIO_Init(void)
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 
   HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI3_IRQn);
