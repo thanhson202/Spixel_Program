@@ -20,11 +20,11 @@ uint32_t read1_out, read2_out, read3_out, read4_out, read5_out, read6_out,
 uint32_t read2_check,read1_check,action;
 
 int Read_ss1,Read_ss2,Read_ss3,Read_ss4;
-int save,val,limit_value;
+int save,val,sw;
 int running;
-int signal_ss;
+int DIR;
 
-int run,change,active;
+int run,change,active,lock_ss;
 int size = 10;
 int count_ch1=0,count_ch2=0;
 uint32_t array_read_ch1[10],array_read_ch2[10];
@@ -276,9 +276,9 @@ void read_pwm(int val_ch)
 						{
 							read_5.out = 61200;
 						}
-						else if(read_5.out < 7000)
+						else if(read_5.out < 7200)
 						{
-							read_5.out = 7000;
+							read_5.out = 7200;
 						}
 						GPIO_InitTypeDef GPIO_InitStruct;
 						GPIO_InitStruct.Pin = CH5_Pin;
@@ -521,7 +521,7 @@ void read_pwm(int val_ch)
 					break;
 			case 12:
 
-				if(HAL_GPIO_ReadPin(SS1_GPIO_Port, SS1_Pin)==0)
+				if((HAL_GPIO_ReadPin(SS1_GPIO_Port, SS1_Pin)==0)&&(run!=0))
 				{
 					read_ss1.start = htim1.Instance -> CNT;
 					GPIO_InitTypeDef GPIO_InitStruct;
@@ -553,30 +553,18 @@ void read_pwm(int val_ch)
 				break;
 			case 13:
 
-				if(HAL_GPIO_ReadPin(SS2_GPIO_Port, SS2_Pin)==0)
+				if((HAL_GPIO_ReadPin(SS2_GPIO_Port, SS2_Pin)==0)&&(run!=0))
 				{
-					active =1;
 					read_ss2.start = htim1.Instance -> CNT;
 					GPIO_InitTypeDef GPIO_InitStruct;
 					GPIO_InitStruct.Pin = SS2_Pin;
 					GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
 					GPIO_InitStruct.Pull = GPIO_NOPULL;
 					HAL_GPIO_Init(SS2_GPIO_Port, &GPIO_InitStruct);
-					active =1;
+					active =2;
 				}
 				else
 				{
-//					read_ss2.end = htim1.Instance->CNT;
-//
-//					if( read_ss2.start > read_ss2.end)
-//					{
-//						read_ss2.out = 65535 - read_ss2.start + read_ss2.end;
-//					}
-//					else
-//					{
-//						read_ss1.out = read_ss1.end - read_ss1.start;
-//					}
-
 					GPIO_InitTypeDef GPIO_InitStruct;
 					GPIO_InitStruct.Pin = SS2_Pin;
 					GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
@@ -586,16 +574,15 @@ void read_pwm(int val_ch)
 				break;
 			case 14:
 
-				if(HAL_GPIO_ReadPin(SS3_GPIO_Port, SS3_Pin)==0)
+				if((HAL_GPIO_ReadPin(SS3_GPIO_Port, SS3_Pin)==0)&&(run!=0))
 				{
-					active = 1;
 					read_ss3.start = htim1.Instance -> CNT;
 					GPIO_InitTypeDef GPIO_InitStruct;
 					GPIO_InitStruct.Pin = SS3_Pin;
 					GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
 					GPIO_InitStruct.Pull = GPIO_NOPULL;
 					HAL_GPIO_Init(SS3_GPIO_Port, &GPIO_InitStruct);
-					active =1;
+					active =3;
 				}
 				else
 				{
@@ -608,7 +595,7 @@ void read_pwm(int val_ch)
 				}
 			case 15:
 
-				if(HAL_GPIO_ReadPin(SS4_GPIO_Port, SS4_Pin)==0)
+				if((HAL_GPIO_ReadPin(SS4_GPIO_Port, SS4_Pin)==0)&&(run!=0))
 				{
 					read_ss4.start = htim1.Instance -> CNT;
 					GPIO_InitTypeDef GPIO_InitStruct;
@@ -616,120 +603,120 @@ void read_pwm(int val_ch)
 					GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
 					GPIO_InitStruct.Pull = GPIO_NOPULL;
 					HAL_GPIO_Init(SS4_GPIO_Port, &GPIO_InitStruct);
-					active =1;
+					active =4;
 				}
 				else
 				{
-
 					GPIO_InitTypeDef GPIO_InitStruct;
 					GPIO_InitStruct.Pin = SS4_Pin;
 					GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
 					GPIO_InitStruct.Pull = GPIO_NOPULL;
 					HAL_GPIO_Init(SS4_GPIO_Port, &GPIO_InitStruct);
-				}
-		}
+			}
 	}
+}
 
 void convert(void)
 {
-	// xoay phai
-	if(read_1.out > 43200)
-	{
-		read1_out = map(read_1.out,43200,61200,28700,0);
-		val = 1;
-		change = 1;
-
-	}
-	//xoay trai
-	else if(read_1.out < 43200)
-	{
-		read1_out = map(read_1.out,7000,43200,0,28700);
-		val = 2;
-		change = 2;
-	}
-	else
-	{
-		read1_out = 28700;
-	}
-
-	//ch2 tien lui banh
-	if(read_2.out > 43250)
-	{
-		read2_out = map(read_2.out,43250,61200,28700,0);
-		val = 3;
-		change = 3;
-
-	}
-	else if((read_2.out < 43250))//||((read1_out>read2_out)&&(read_2.out < 43250))
-	{
-		read2_out = map(read_2.out,7000,43250,0,28700);
-		val = 4;
-		change = 4;
-
-	}
-	else
-	{
-		read2_out = 28700;
-	}
-
 	//////// JOYSTIK GIUA
 	if(read_1.out != 43200 && read_2.out != 43250)
 	{
-		limit_value = 1;
+		if((val ==4)&&(read_1.out>read_2.out)&&(read_1.out<55000))//(read_1.out > 43200)
+				{
+					val = 4;
+				}
+				else if((read_1.out < read_2.out)&&(read_1.out<10000))//(read_1.out < 43200)
+				{
+					val = 2;
+				}
+				else if((read_1.out>read_2.out)&&(change = 1))//(read_1.out > 43200)
+				{
+					val = 1;
+				}
+				else
+				{
+					val=  3;
+				}
+				if(read_1.out == 7000 && read_2.out == 7000)
+				{
+					val =5;
+				}
+				else if(read_1.out == 61200 && read_2.out == 7000)
+				{
+					val = 6;
+				}
+				else if (read_1.out == 7000 && read_2.out ==61200)
+				{
+					val = 7;
+				}
+				else if (read_1.out == 61200 && read_2.out ==61200)
+				{
+					val = 8;
+				}
 	}
 	else
 	{
-		limit_value = 0;
-	}
-	if(limit_value == 1)
-	{
-		if((val ==4)&&(read_1.out>read_2.out)&&(read_1.out<55000))//(read_1.out > 43200)
+		// xoay phai
+		if(read_1.out > 43200)
 		{
-			val =4;
-		}
-		else if((read_1.out < read_2.out)&&(read_1.out<10000))//(read_1.out < 43200)
-		{
-			val = 2;
-		}
-		else if((read_1.out>read_2.out)&&(change = 1))//(read_1.out > 43200)
-		{
+			read1_out = map(read_1.out,43200,61200,28700,0);
 			val = 1;
+			change = 1;
+
+		}
+		//xoay trai
+		else if(read_1.out < 43200)
+		{
+			read1_out = map(read_1.out,7000,43200,0,28700);
+			val = 2;
+			change = 2;
 		}
 		else
 		{
-			val=3;
-		}
-		/*
-		if(((change ==4)&&(read_1.out>read_2.out)&&(read_1.out<55000))||
-		   ((change ==3)&&(read_1.out<read_2.out)&&(read_2.out>55000)))
-		{
 			read1_out = 28700;
-
 		}
-		else if(read1_out!=28700)
+
+		//ch2 tien lui banh
+		if(read_2.out > 43250)
+		{
+			read2_out = map(read_2.out,43250,61200,28700,0);
+			val = 3;
+			change = 3;
+		}
+		else if((read_2.out < 43250))//||((read1_out>read2_out)&&(read_2.out < 43250))
+		{
+			read2_out = map(read_2.out,7000,43250,0,28700);
+			val = 4;
+			change = 4;
+		}
+		else
 		{
 			read2_out = 28700;
-			val = 1;
-		}
-		*/
-		if(read_1.out == 7000 && read_2.out==7000)
-		{
-			val =17;
-		}
-		else if(read_1.out == 61200 && read_2.out == 7000)
-		{
-			val = 18;
-		}
-		else if (read_1.out == 7000 && read_2.out ==61200)
-		{
-			val = 19;
-		}
-		else if (read_1.out == 61200 && read_2.out ==61200)
-		{
-			val = 20;
 		}
 	}
 		//////////////////++++++end+++++/////////////////
+
+	//ch5 volume speed choi
+	read5_out = map(read_5.out,7200,61200,28700,0);
+
+	//save status joystick
+	if(read_6.out > 7500)
+	{
+		save = 1;
+	}
+	else
+	{
+		save = 0;
+	}
+
+	// ch7 disable sensor
+	if(read_7.out>8000)
+	{
+		lock_ss = 1;
+	}
+	else{
+		lock_ss = 0;
+	}
 
 }
 void direction(int running,uint32_t speed_CCR1,uint32_t speed_CCR2)
@@ -746,8 +733,15 @@ void direction(int running,uint32_t speed_CCR1,uint32_t speed_CCR2)
 	//lui
 	else if(running == 2)
 	{
-		TIM3 -> CCR1 = speed_CCR1; // DC TRAI
-		TIM3 -> CCR2 = speed_CCR2; // DC PHAI
+		if(speed_CCR1 ==0&& speed_CCR2==0)
+		{
+			TIM3 -> CCR1 = speed_CCR1+12000; // DC TRAI
+		}
+		else
+		{
+			TIM3 -> CCR1 = speed_CCR1;
+		}
+		TIM3 -> CCR2 = speed_CCR2+1000; // DC PHAI
 		HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, SET);
 		HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, RESET);
 	}
@@ -771,7 +765,8 @@ void direction(int running,uint32_t speed_CCR1,uint32_t speed_CCR2)
 
 void Status_SS(void)
 {
-	if(active ==1)
+	value_timer = htim1.Instance -> CNT;
+	if(active == 1&& run==1)
 	{
 		if( read_ss1.start > value_timer)
 		{
@@ -781,7 +776,7 @@ void Status_SS(void)
 		{
 			read_ss1.out = value_timer - read_ss1.start;
 		}
-		if(read_ss1.out >= 2000)
+		if(read_ss1.out >= 50000)
 		{
 			active =0;
 			HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, RESET);
@@ -800,9 +795,20 @@ void Status_SS(void)
 			GPIO_InitStruct.Pull = GPIO_NOPULL;
 			HAL_GPIO_Init(SS1_GPIO_Port, &GPIO_InitStruct);
 
-			direction(2,22000,15000);// ss1: lui nhe sang phai
+			direction(2,20000,15000);// ss1: lui nhe sang phai
 			HAL_Delay(1000);
+			direction(1,28700,28700);
+
+			if(HAL_GPIO_ReadPin(SS1_GPIO_Port, SS1_Pin)==0){
+				direction(2,20000,15000);// ss1: lui nhe sang phai
+				HAL_Delay(1000);
+				direction(1,28700,28700);
+				HAL_Delay(1000);
+			}
 		}
+	}
+	if(active == 2 && run == 1)
+	{
 		if( read_ss2.start > value_timer)
 		{
 			read_ss2.out = 65535 - read_ss2.start + value_timer;
@@ -831,9 +837,28 @@ void Status_SS(void)
 			GPIO_InitStruct.Pull = GPIO_NOPULL;
 			HAL_GPIO_Init(SS2_GPIO_Port, &GPIO_InitStruct);
 
-			direction(2,15000+13000,22000);// ss1: lui nhe sang trai lui +13000
+			direction(1,20000,15000);// ss1: tien nhe sang trai lui +13000
 			HAL_Delay(1000);
+			direction(1,28700,28700);
+
+			if(HAL_GPIO_ReadPin(SS2_GPIO_Port, SS2_Pin)==0){
+				direction(1,20000,15000);// ss1: tien nhe sang trai lui +13000
+				HAL_Delay(1000);
+				direction(1,28700,28700);
+				HAL_Delay(1000);
+			}
 		}
+		else
+		{
+			GPIO_InitTypeDef GPIO_InitStruct;
+			GPIO_InitStruct.Pin = SS2_Pin;
+			GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+			GPIO_InitStruct.Pull = GPIO_NOPULL;
+			HAL_GPIO_Init(SS2_GPIO_Port, &GPIO_InitStruct);
+		}
+	}
+	if(active == 3 && run == 1)
+	{
 		if( read_ss3.start > value_timer)
 		{
 			read_ss3.out = 65535 - read_ss3.start + value_timer;
@@ -861,10 +886,28 @@ void Status_SS(void)
 			GPIO_InitStruct.Pull = GPIO_NOPULL;
 			HAL_GPIO_Init(SS3_GPIO_Port, &GPIO_InitStruct);
 
-			direction(1,22000,15000);// ss1: tien nhe sang phai
+			direction(2,15000,22000);// ss1: lui nhe sang phai
 			HAL_Delay(1000);
+			direction(1,28700,28700);
+			if(HAL_GPIO_ReadPin(SS3_GPIO_Port, SS3_Pin) == 0)
+			{
+				direction(2,15000,22000);// ss1: lui nhe sang phai
+				HAL_Delay(1000);
+				direction(1,28700,28700);
+				HAL_Delay(1000);
+			}
 		}
-
+		else
+		{
+			GPIO_InitTypeDef GPIO_InitStruct;
+			GPIO_InitStruct.Pin = SS3_Pin;
+			GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+			GPIO_InitStruct.Pull = GPIO_NOPULL;
+			HAL_GPIO_Init(SS3_GPIO_Port, &GPIO_InitStruct);
+		}
+	}
+	if(active == 4 && run ==1)
+	{
 		if( read_ss4.start > value_timer)
 		{
 			read_ss4.out = 65535 - read_ss4.start + value_timer;
@@ -873,9 +916,9 @@ void Status_SS(void)
 		{
 			read_ss4.out = value_timer - read_ss4.start;
 		}
-		if(read_ss4.out >= 2000)
+		if(read_ss4.out >= 20000)
 		{
-			active =0;
+			active = 0;
 			HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, RESET);
 			HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, RESET);
 			HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, RESET);
@@ -892,8 +935,25 @@ void Status_SS(void)
 			GPIO_InitStruct.Pull = GPIO_NOPULL;
 			HAL_GPIO_Init(SS4_GPIO_Port, &GPIO_InitStruct);
 
-			direction(1,15000,22000);// ss1: lui nhe sang trai
+			direction(1,15000,22000);// ss1: tiennhe sang trai
 			HAL_Delay(1000);
+			direction(1,28700,28700);
+
+			if(HAL_GPIO_ReadPin(SS4_GPIO_Port, SS4_Pin)){
+				direction(1,15000,22000);// ss1: tiennhe sang trai
+				HAL_Delay(1000);
+				direction(1,28700,28700);
+				HAL_Delay(1000);
+			}
+
+		}
+		else
+		{
+			GPIO_InitTypeDef GPIO_InitStruct;
+			GPIO_InitStruct.Pin = SS4_Pin;
+			GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+			GPIO_InitStruct.Pull = GPIO_NOPULL;
+			HAL_GPIO_Init(SS4_GPIO_Port, &GPIO_InitStruct);
 		}
 	}
 }
@@ -904,7 +964,9 @@ void control(void)
 	Read_ss2 = HAL_GPIO_ReadPin(SS2_GPIO_Port, SS2_Pin);
 	Read_ss3 = HAL_GPIO_ReadPin(SS3_GPIO_Port, SS3_Pin);
 	Read_ss4 = HAL_GPIO_ReadPin(SS4_GPIO_Port, SS4_Pin);
-	if(read_1.out>7500&&read_1.out<10500&&read_2.out>27500&&read_2.out<29800)
+
+	if((Read_ss1 ==0 && Read_ss2 ==0 && Read_ss3 ==0 && Read_ss4==0 && lock_ss==0)||
+			(save !=0 && read1_out != 28700 && read2_out != 28700 && read5_out != 28700)||(read_7.out == 0))//
 	{
 		run =0;
 		HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, RESET);
@@ -924,8 +986,6 @@ void control(void)
 	}
 	else
 	{
-		if (Read_ss1 ==1 && Read_ss2 ==1 && Read_ss3 ==1 && Read_ss4==1)
-		{
 			run =1;
 			HAL_GPIO_WritePin(EN_1A_GPIO_Port, EN_1A_Pin, SET);
 			HAL_GPIO_WritePin(EN_1B_GPIO_Port, EN_1B_Pin, SET);
@@ -937,38 +997,87 @@ void control(void)
 			HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
 			HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
 
-			switch (val)
+			if(save ==1)
 			{
-				case 1:
-					direction(4,read1_out,read1_out);
-					break;
-				case 2:
-					direction(3,read1_out,read1_out);
-					break;
-				case 3:
-					direction(2,read2_out+13000,read2_out);
-					break;
-				case 4:
-					direction(1,read2_out,read2_out);
-					break;
-				case 17:
-					direction(1,read2_out,read2_out+18000);
-					break;
-				case 18:
-					direction(1,read2_out+18000,read2_out);
-					break;
-				case 19:
-					direction(2,read2_out,read2_out);
-					break;
-				case 20:
-					direction(2,read2_out+20000,read2_out);
-					break;
+			  if(read2_out != read2_check)
+			  {
+				  read2_out = read2_check;
+				  if(DIR == 1)
+				  {
+					  direction(1,read2_check,read2_check);
+				  }
+				  else if (DIR == 0){
+					  direction(2,read2_check,read2_check);
+				  }
+			  }
+			}
+			else
+			{
+			  read2_check = read2_out ;
+			  switch (val)
+				{
+					case 1:
+						direction(4,read1_out,read1_out);
+						break;
+					case 2:
+						direction(3,read1_out,read1_out);
+						break;
+					case 3:
+						direction(2,read2_out,read2_out);
+						DIR =0;
+						break;
+					case 4:
+						direction(1,read2_out,read2_out);
+						DIR=1;
+						break;
+					case 5:
+						direction(1,10000,23000);
+						break;
+					case 6:
+						direction(1,23000,10000);
+						break;
+					case 7:
+						direction(2,20000,0);
+						break;
+					case 8:
+						direction(2,800,10000);
+						break;
+				}
+			}
+			//choi
+			TIM3 -> CCR3 = read5_out;
+			if(read_10.out > 42100){
+					HAL_GPIO_WritePin(F_R_2B_GPIO_Port, F_R_2B_Pin, SET);
+			}
+			else if(read_10.out < 42100){
+					HAL_GPIO_WritePin(F_R_2B_GPIO_Port, F_R_2B_Pin, RESET);
+			}
+			else{
+					HAL_GPIO_WritePin(EN_2B_GPIO_Port, EN_2B_Pin, RESET);
+			}
+			if(read_11.out > 42100){
+					HAL_GPIO_WritePin(F_R_2A_GPIO_Port, F_R_2A_Pin, SET);
+			}
+			else if(read_11.out < 42100){
+					HAL_GPIO_WritePin(F_R_2A_GPIO_Port, F_R_2A_Pin, RESET);
+			}
+			else{
+				HAL_GPIO_WritePin(EN_2A_GPIO_Port, EN_2A_Pin, RESET);
+			}
+			//led
+			if(read_8.out<8000){
+				HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, SET);
+			}
+			else{
+				HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, RESET);
+			}
+			//Water
+			if(read_9.out>8000){
+				HAL_GPIO_WritePin(SLN_GPIO_Port, SLN_Pin, SET);
+			}
+			else{
+				HAL_GPIO_WritePin(SLN_GPIO_Port, SLN_Pin, RESET);
 			}
 
-		}
-		else
-		{
-			active  =1;
-		}
 	}
 }

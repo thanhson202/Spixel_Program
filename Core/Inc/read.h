@@ -20,7 +20,6 @@ void control(void);
 extern uint32_t read1_out,read2_out,read3_out,read4_out,read5_out,read6_out,
 				read7_out,read8_out,read9_out,read10_out,read11_out;
 extern uint32_t read3_check;
-extern int DIR;
 extern int DIR_CHECK;
 extern int val_ch;
 

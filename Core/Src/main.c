@@ -140,7 +140,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	{
 		read_pwm(15);
 	}
-	convert();
+	  convert();
+
 }
 
 /* USER CODE END 0 */
@@ -203,8 +204,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  value_timer = htim1.Instance -> CNT;
+
 	  control();
+	  Status_SS();
 
   }
   /* USER CODE END 3 */
