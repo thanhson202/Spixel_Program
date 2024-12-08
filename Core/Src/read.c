@@ -733,14 +733,14 @@ void direction(int running,uint32_t speed_CCR1,uint32_t speed_CCR2)
 	//lui
 	else if(running == 2)
 	{
-		if(speed_CCR1 ==0&& speed_CCR2==0)
-		{
-			TIM3 -> CCR1 = speed_CCR1+12000; // DC TRAI
-		}
-		else
-		{
+//		if(speed_CCR1 ==0&& speed_CCR2==0)
+//		{
+//			TIM3 -> CCR1 = speed_CCR1+12000; // DC TRAI
+//		}
+//		else
+//		{
 			TIM3 -> CCR1 = speed_CCR1;
-		}
+//		}
 		TIM3 -> CCR2 = speed_CCR2+1000; // DC PHAI
 		HAL_GPIO_WritePin(F_R_1A_GPIO_Port, F_R_1A_Pin, SET);
 		HAL_GPIO_WritePin(F_R_1B_GPIO_Port, F_R_1B_Pin, RESET);
@@ -1013,7 +1013,7 @@ void control(void)
 			}
 			else
 			{
-			  read2_check = read2_out ;
+			  read2_check = read2_out;
 			  switch (val)
 				{
 					case 1:
@@ -1045,21 +1045,24 @@ void control(void)
 				}
 			}
 			//choi
-			TIM3 -> CCR3 = read5_out;
 			if(read_10.out > 42100){
+					TIM3 -> CCR3 = read5_out;
 					HAL_GPIO_WritePin(F_R_2B_GPIO_Port, F_R_2B_Pin, SET);
 			}
 			else if(read_10.out < 42100){
 					HAL_GPIO_WritePin(F_R_2B_GPIO_Port, F_R_2B_Pin, RESET);
+					TIM3 -> CCR3 = read5_out;
 			}
 			else{
 					HAL_GPIO_WritePin(EN_2B_GPIO_Port, EN_2B_Pin, RESET);
 			}
 			if(read_11.out > 42100){
 					HAL_GPIO_WritePin(F_R_2A_GPIO_Port, F_R_2A_Pin, SET);
+					TIM3 -> CCR3 = read5_out;
 			}
 			else if(read_11.out < 42100){
 					HAL_GPIO_WritePin(F_R_2A_GPIO_Port, F_R_2A_Pin, RESET);
+					TIM3 -> CCR3 = read5_out;
 			}
 			else{
 				HAL_GPIO_WritePin(EN_2A_GPIO_Port, EN_2A_Pin, RESET);
