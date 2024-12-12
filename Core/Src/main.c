@@ -27,7 +27,6 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-uint32_t value_timer;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -37,7 +36,7 @@ uint32_t value_timer;
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+//uint8_t flag_tim6 = 0;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -61,7 +60,6 @@ static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -193,7 +191,6 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 
   HAL_TIM_Base_Start(&htim1);
-  HAL_TIM_Base_Start(&htim6);
 
   /* USER CODE END 2 */
 
@@ -204,9 +201,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-	  control();
 	  Status_SS();
+	  control();
 
   }
   /* USER CODE END 3 */
@@ -449,15 +445,15 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 0;
+  htim6.Init.Prescaler = 72-1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 65535;
+  htim6.Init.Period = 200-1;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
   {
@@ -533,13 +529,11 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : SS1_Pin CH5_Pin CH6_Pin CH7_Pin
-                           CH8_Pin CH9_Pin CH10_Pin CH11_Pin */
-  GPIO_InitStruct.Pin = SS1_Pin|CH5_Pin|CH6_Pin|CH7_Pin
-                          |CH8_Pin|CH9_Pin|CH10_Pin|CH11_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  /*Configure GPIO pin : SS1_Pin */
+  GPIO_InitStruct.Pin = SS1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(SS1_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SS5_Pin SS6_Pin SS7_Pin SS8_Pin */
   GPIO_InitStruct.Pin = SS5_Pin|SS6_Pin|SS7_Pin|SS8_Pin;
@@ -595,6 +589,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(CH4_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : CH5_Pin CH6_Pin CH7_Pin CH8_Pin
+                           CH9_Pin CH10_Pin CH11_Pin */
+  GPIO_InitStruct.Pin = CH5_Pin|CH6_Pin|CH7_Pin|CH8_Pin
+                          |CH9_Pin|CH10_Pin|CH11_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -626,7 +628,13 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim->Instance == TIM6) {
+        flag_tim6 = 1; // Cờ báo hiệu TIM6 ngắt
 
+    }
+}
 /* USER CODE END 4 */
 
 /**
