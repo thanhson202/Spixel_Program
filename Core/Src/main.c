@@ -191,6 +191,8 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 
   HAL_TIM_Base_Start(&htim1);
+//  HAL_TIM_Base_Start_IT(&htim6);
+
 
   /* USER CODE END 2 */
 
@@ -201,8 +203,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  Status_SS();
+//	  HAL_TIM_Base_Start_IT(&htim6);
 	  control();
+	  Status_SS();
 
   }
   /* USER CODE END 3 */
@@ -445,9 +448,9 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 72-1;
+  htim6.Init.Prescaler = 7200-1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 200-1;
+  htim6.Init.Period = 7000-1;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -631,7 +634,7 @@ static void MX_GPIO_Init(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM6) {
-        flag_tim6 = 1; // Cờ báo hiệu TIM6 ngắt
+        flag_tim6 = 1; // C�? báo hiệu TIM6 ngắt
 
     }
 }

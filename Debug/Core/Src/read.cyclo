@@ -3,5 +3,5 @@
 ../Core/Src/read.c:77:6:read_pwm	76
 ../Core/Src/read.c:570:6:convert	23
 ../Core/Src/read.c:673:6:direction	5
-../Core/Src/read.c:717:6:Status_SS	22
-../Core/Src/read.c:832:6:control	37
+../Core/Src/read.c:717:6:Status_SS	23
+../Core/Src/read.c:832:6:control	36
