@@ -37,12 +37,21 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 //uint8_t flag_tim6 = 0;
+int RPM1,RPM2,remember;
+int Is_First_Captured1 = 0,Is_First_Captured2 = 0;
+uint32_t IC_Val1 = 0,IC_Val2 = 0,Difference1 = 0;
+uint32_t IC_Val3 = 0,IC_Val4 = 0,Difference2 = 0;
+
+/* Measure Frequency */
+uint32_t frequency1 = 0,frequency2 = 0;
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim6;
 
 UART_HandleTypeDef huart1;
@@ -55,10 +64,11 @@ UART_HandleTypeDef huart1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM1_Init(void);
-static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_TIM5_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 
@@ -66,7 +76,6 @@ static void MX_TIM6_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-
 	if(GPIO_Pin == CH1_Pin)
 	{
 		read_pwm(1);
@@ -128,19 +137,90 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	}
 	else if(GPIO_Pin == SS2_Pin)
 	{
-		read_pwm(13);
+		read_pwm(12);
 	}
 	else if(GPIO_Pin == SS3_Pin)
 	{
-		read_pwm(14);
+		read_pwm(12);
 	}
 	else if(GPIO_Pin == SS4_Pin)
 	{
-		read_pwm(15);
+		read_pwm(12);
+	}
+	else if((GPIO_Pin == SS1_Pin && GPIO_Pin == SS3_Pin)||
+			(GPIO_Pin == SS2_Pin&&GPIO_Pin == SS4_Pin))
+	{
+		read_pwm(12);
 	}
 	  convert();
 
 }
+//read Speed pin Driver  SPI
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+	remember =1;
+	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+	{
+
+		if (Is_First_Captured1==0) // if the first rising edge is not captured
+		{
+			IC_Val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_3); // read the first value
+			Is_First_Captured1 = 1;  // set the first captured as true
+		}
+
+		else   // If the first rising edge is captured, now we will capture the second edge
+		{
+
+			IC_Val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_3);  // read second value
+
+			if (IC_Val2 > IC_Val1)
+			{
+				Difference1 = IC_Val2-IC_Val1;
+			}
+
+			else if (IC_Val1 > IC_Val2)
+			{
+				Difference1 = (65535 - IC_Val1) + IC_Val2;
+			}
+
+			frequency1 = 3000000/Difference1;
+			RPM1 = (frequency1/8)*60/3;
+			__HAL_TIM_SET_COUNTER(htim, 0);  // reset the counter
+			Is_First_Captured1 = 0; // set it back to false
+		}
+	}
+
+	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
+		{
+			if (Is_First_Captured2==0) // if the first rising edge is not captured
+			{
+				IC_Val3 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_4); // read the first value
+				Is_First_Captured2 = 1;  // set the first captured as true
+			}
+
+			else   // If the first rising edge is captured, now we will capture the second edge
+			{
+				IC_Val4 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_4);  // read second value
+
+				if (IC_Val4 > IC_Val3)
+				{
+					Difference2 = IC_Val4-IC_Val3;
+				}
+
+				else if (IC_Val3 > IC_Val4)
+				{
+					Difference2 = (65535 - IC_Val3) + IC_Val4;
+				}
+
+				frequency2 = 3000000/Difference2;
+				RPM2 = (frequency2/8)*60/3;
+				__HAL_TIM_SET_COUNTER(htim, 0);  // reset the counter
+				Is_First_Captured2 = 0; // set it back to false
+			}
+		}
+}
+
 
 /* USER CODE END 0 */
 
@@ -174,16 +254,15 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM1_Init();
-  MX_TIM2_Init();
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   MX_TIM6_Init();
+  MX_TIM5_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   // TIM2 BROOM
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+
 
   //TIM3 WHEEL
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
@@ -191,8 +270,11 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 
   HAL_TIM_Base_Start(&htim1);
-//  HAL_TIM_Base_Start_IT(&htim6);
-
+  // time delay sensor
+  HAL_TIM_Base_Start_IT(&htim6);
+  // read RPM
+  HAL_TIM_IC_Start_IT(&htim5, TIM_CHANNEL_3);
+  HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
 
   /* USER CODE END 2 */
 
@@ -203,7 +285,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//	  HAL_TIM_Base_Start_IT(&htim6);
+	  remember=0;
+	  if(remember == 0){
+		  RPM1=0;
+		  RPM2=0;
+	  }
 	  control();
 	  Status_SS();
 
@@ -310,15 +396,15 @@ static void MX_TIM2_Init(void)
 
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_IC_InitTypeDef sConfigIC = {0};
 
   /* USER CODE BEGIN TIM2_Init 1 */
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 100-1;
+  htim2.Init.Prescaler = 24-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 14400-1;
+  htim2.Init.Period = 65535;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -330,7 +416,7 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
+  if (HAL_TIM_IC_Init(&htim2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -340,26 +426,17 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_4) != HAL_OK)
   {
     Error_Handler();
   }
   /* USER CODE BEGIN TIM2_Init 2 */
 
   /* USER CODE END TIM2_Init 2 */
-  HAL_TIM_MspPostInit(&htim2);
 
 }
 
@@ -431,6 +508,64 @@ static void MX_TIM3_Init(void)
 }
 
 /**
+  * @brief TIM5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM5_Init(void)
+{
+
+  /* USER CODE BEGIN TIM5_Init 0 */
+
+  /* USER CODE END TIM5_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_IC_InitTypeDef sConfigIC = {0};
+
+  /* USER CODE BEGIN TIM5_Init 1 */
+
+  /* USER CODE END TIM5_Init 1 */
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = 24-1;
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 65535;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_IC_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim5, &sConfigIC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM5_Init 2 */
+
+  /* USER CODE END TIM5_Init 2 */
+
+}
+
+/**
   * @brief TIM6 Initialization Function
   * @param None
   * @retval None
@@ -448,9 +583,9 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 7200-1;
+  htim6.Init.Prescaler = 72-1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 1000-1;
+  htim6.Init.Period = 100-1;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -538,8 +673,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(SS1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SS5_Pin SS6_Pin SS7_Pin SS8_Pin */
-  GPIO_InitStruct.Pin = SS5_Pin|SS6_Pin|SS7_Pin|SS8_Pin;
+  /*Configure GPIO pins : PE8 SS6_Pin SS7_Pin SS8_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_8|SS6_Pin|SS7_Pin|SS8_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
@@ -558,13 +693,20 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : BRK_2B_Pin EN_2B_Pin F_R_2B_Pin BRK_2A_Pin
-                           EN_2A_Pin F_R_2A_Pin BRK_1B_Pin EN_1B_Pin */
+                           F_R_2A_Pin BRK_1B_Pin EN_1B_Pin */
   GPIO_InitStruct.Pin = BRK_2B_Pin|EN_2B_Pin|F_R_2B_Pin|BRK_2A_Pin
-                          |EN_2A_Pin|F_R_2A_Pin|BRK_1B_Pin|EN_1B_Pin;
+                          |F_R_2A_Pin|BRK_1B_Pin|EN_1B_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : EN_2A_Pin */
+  GPIO_InitStruct.Pin = EN_2A_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(EN_2A_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : F_R_1B_Pin BRK_1A_Pin EN_1A_Pin */
   GPIO_InitStruct.Pin = F_R_1B_Pin|BRK_1A_Pin|EN_1A_Pin;

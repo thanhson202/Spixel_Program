@@ -60,8 +60,8 @@ all: main-build
 main-build: Spixel_V1.0.elf secondary-outputs
 
 # Tool invocations
-Spixel_V1.0.elf Spixel_V1.0.map: $(OBJS) $(USER_OBJS) D:\S-Pixel\main\main_v1.0\STM32F103VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Spixel_V1.0.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"D:\S-Pixel\main\main_v1.0\STM32F103VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Spixel_V1.0.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Spixel_V1.0.elf Spixel_V1.0.map: $(OBJS) $(USER_OBJS) D:\S-Pixel\main\Spixel_Program\STM32F103VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Spixel_V1.0.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"D:\S-Pixel\main\Spixel_Program\STM32F103VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Spixel_V1.0.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

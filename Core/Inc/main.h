@@ -46,6 +46,8 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
+extern int RPM1;
+extern int RPM2;
 /* USER CODE END EM */
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -61,8 +63,6 @@ void Error_Handler(void);
 #define SS1_Pin GPIO_PIN_2
 #define SS1_GPIO_Port GPIOB
 #define SS1_EXTI_IRQn EXTI2_IRQn
-#define SS5_Pin GPIO_PIN_8
-#define SS5_GPIO_Port GPIOE
 #define SS6_Pin GPIO_PIN_9
 #define SS6_GPIO_Port GPIOE
 #define SS7_Pin GPIO_PIN_10
