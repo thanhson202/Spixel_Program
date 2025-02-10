@@ -32,7 +32,6 @@ int count_ch1=0,count_ch2=0;
 float timer_delay;
 
 
-int test;
 //value measure fequency
 uint32_t Def;
 
@@ -894,9 +893,10 @@ void control(void)
 		HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, RESET);
 		HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, RESET);
 		HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, RESET);
-
+		HAL_GPIO_WritePin(SLN_GPIO_Port, SLN_Pin, SET);
 //		HAL_Delay(3000);
 		HAL_GPIO_WritePin(OUT_GPIO_Port, OUT_Pin, SET);// BUZZE KEU
+
 	}
 	else
 	{
@@ -909,11 +909,12 @@ void control(void)
 
 		HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, SET);
 		HAL_GPIO_WritePin(BRK_1B_GPIO_Port, BRK_1B_Pin, SET);
-//		HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
-//		HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
+		HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, SET);
+		HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, SET);
 
 		if(save ==0 && read1_out== 28700 && read2_out==28700){
 			run =2;
+			HAL_GPIO_WritePin(OUT_GPIO_Port, OUT_Pin, RESET);
 			HAL_GPIO_WritePin(EN_1A_GPIO_Port, EN_1A_Pin, RESET);
 			HAL_GPIO_WritePin(EN_1B_GPIO_Port, EN_1B_Pin, RESET);
 			HAL_GPIO_WritePin(BRK_1A_GPIO_Port, BRK_1A_Pin, RESET);
@@ -932,7 +933,8 @@ void control(void)
 					  {
 						  direction(1,read2_check,read2_check);
 						  // Closed loopcontrol
-							if((RPM1>1800)&&(RPM2>1800)){
+						  /*
+//							if((RPM1>1800)&&(RPM2>1800)){
 								if((RPM1 > (RPM2+3))||(RPM1 > (RPM2-3))){
 									TIM3 -> CCR1=read2_check-Def;
 									HAL_Delay(1000);
@@ -947,29 +949,31 @@ void control(void)
 										TIM3 -> CCR1=read2_check+Def;
 									}
 								}
-							}
-
+//							}
+*/
 					  }
 					  else if (DIR == 0){
 						  direction(2,read2_check,read2_check);
 						  // Closed loopcontrol
-							if((RPM1>1800)&&(RPM2>1800)){
-								if((RPM1 > (RPM2+3))||(RPM1 > (RPM2-3))){
+						  /*
+//							if((RPM1>1800)&&(RPM2>1800)){
+								if(RPM1 > (RPM2+3)){
 									TIM3 -> CCR1=read2_check-Def;
 									HAL_Delay(1000);
-									if((RPM1 > (RPM2+3))||(RPM1 > (RPM2-3))){
+									if(RPM1 > (RPM2+3)){
 										TIM3 -> CCR2=read2_check+Def;
 									}
 								}
-								else if((RPM1 < (RPM2+3))||(RPM1 < (RPM2-3))){
+								else if(RPM1 < (RPM2-3)){
 									TIM3 -> CCR2=read2_check-Def;
 									HAL_Delay(1000);
-									if((RPM1 < (RPM2+3))||(RPM1 < (RPM2-3))){
+									if(RPM1 < (RPM2-3)){
 										TIM3 -> CCR1=read2_check+Def;
 									}
 								}
-							}
+//							}
 
+ */
 					  }
 				  }
 				}
@@ -987,7 +991,7 @@ void control(void)
 						case 3:
 							direction(2,read2_out,read2_out);
 							DIR =0;
-
+							/*
 							if((RPM1>1800)&&(RPM2>1800)){
 								if((RPM1 > (RPM2+3))||(RPM1 > (RPM2-3))){
 									TIM3 -> CCR1=read2_check-Def;
@@ -1004,13 +1008,13 @@ void control(void)
 									}
 								}
 							}
-
+							*/
 							break;
 						case 4:
 							direction(1,read2_out,read2_out);
 							DIR=1;
 
-							if((RPM1>1800)&&(RPM2>1800)){
+							/*if((RPM1>1800)&&(RPM2>1800)){
 								if((RPM1 > (RPM2+3))||(RPM1 > (RPM2-3))){
 									TIM3 -> CCR1=read2_check-Def;
 									HAL_Delay(1000);
@@ -1025,8 +1029,7 @@ void control(void)
 										TIM3 -> CCR1=read2_check+Def;
 									}
 								}
-							}
-
+							}*/
 							break;
 						case 5:
 							direction(1,10000,23000);
@@ -1055,7 +1058,7 @@ void control(void)
 					HAL_GPIO_WritePin(EN_2B_GPIO_Port,EN_2B_Pin, SET);
 			}
 			else{
-//					HAL_GPIO_WritePin(EN_2B_GPIO_Port, EN_2B_Pin, RESET);
+//					HAL_GPIO_WritePin(BRK_2B_GPIO_Port, BRK_2B_Pin, RESET);
 					HAL_GPIO_WritePin(EN_2B_GPIO_Port,EN_2B_Pin, RESET);
 			}
 			if(read_11.out > 50000){
@@ -1069,8 +1072,8 @@ void control(void)
 					TIM3 -> CCR3 = read5_out;
 			}
 			else{
+//				HAL_GPIO_WritePin(BRK_2A_GPIO_Port, BRK_2A_Pin, RESET);
 				HAL_GPIO_WritePin(EN_2A_GPIO_Port,EN_2A_Pin, RESET);
-				test=1;
 			}
 			//led
 			if(read_8.out<8000){
