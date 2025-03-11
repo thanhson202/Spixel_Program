@@ -37,7 +37,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 //uint8_t flag_tim6 = 0;
-int RPM1,RPM2,remember;
+int RPM1,RPM2;
 int Is_First_Captured1 = 0,Is_First_Captured2 = 0;
 uint32_t IC_Val1 = 0,IC_Val2 = 0,Difference1 = 0;
 uint32_t IC_Val3 = 0,IC_Val4 = 0,Difference2 = 0;
@@ -74,62 +74,52 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+//read pwm
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if(GPIO_Pin == CH1_Pin)
 	{
 		read_pwm(1);
-
 	}
 	else if(GPIO_Pin == CH2_Pin)
 	{
 		read_pwm(2);
-
 	}
 	else if(GPIO_Pin == CH3_Pin)
 	{
 		read_pwm(3);
-
 	}
 	else if(GPIO_Pin == CH4_Pin)
 	{
 		read_pwm(4);
-
 	}
 	else if(GPIO_Pin == CH5_Pin)
 	{
 		read_pwm(5);
-
 	}
 	else if(GPIO_Pin == CH6_Pin)
 	{
 		read_pwm(6);
-
 	}
 	else if(GPIO_Pin == CH7_Pin)
 	{
 		read_pwm(7);
-
 	}
 	else if(GPIO_Pin == CH8_Pin)
 	{
 		read_pwm(8);
-
 	}
 	else if(GPIO_Pin == CH9_Pin)
 	{
 		read_pwm(9);
-
 	}
 	else if(GPIO_Pin == CH10_Pin)
 	{
 		read_pwm(10);
-
 	}
 	else if(GPIO_Pin == CH11_Pin)
 	{
 		read_pwm(11);
-
 	}
 	else if(GPIO_Pin == SS1_Pin)
 	{
@@ -153,13 +143,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		read_pwm(12);
 	}
 	  convert();
-
 }
+
 //read Speed pin Driver  SPI
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-	remember =1;
 	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
 	{
 
@@ -285,13 +274,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  remember=0;
-	  if(remember == 0){
-		  RPM1=0;
-		  RPM2=0;
-	  }
 	  control();
 	  Status_SS();
+
 
   }
   /* USER CODE END 3 */
@@ -583,9 +568,9 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 72-1;
+  htim6.Init.Prescaler = 7200-1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 100-1;
+  htim6.Init.Period = 5000-1;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
