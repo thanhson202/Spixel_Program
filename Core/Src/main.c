@@ -75,6 +75,7 @@ static void MX_TIM2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 //read pwm
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if(GPIO_Pin == CH1_Pin)
@@ -123,26 +124,26 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	}
 	else if(GPIO_Pin == SS1_Pin)
 	{
-		read_pwm(12);
+		HAL_TIM_Base_Start_IT(&htim6);
 	}
 	else if(GPIO_Pin == SS2_Pin)
 	{
-		read_pwm(12);
+		HAL_TIM_Base_Start_IT(&htim6);
 	}
 	else if(GPIO_Pin == SS3_Pin)
 	{
-		read_pwm(12);
+		HAL_TIM_Base_Start_IT(&htim6);
 	}
 	else if(GPIO_Pin == SS4_Pin)
 	{
-		read_pwm(12);
+		HAL_TIM_Base_Start_IT(&htim6);
 	}
 	else if((GPIO_Pin == SS1_Pin && GPIO_Pin == SS3_Pin)||
 			(GPIO_Pin == SS2_Pin&&GPIO_Pin == SS4_Pin))
 	{
-		read_pwm(12);
+		HAL_TIM_Base_Start_IT(&htim6);
 	}
-	  convert();
+//	  convert();
 }
 
 //read Speed pin Driver  SPI
@@ -173,7 +174,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 				Difference1 = (65535 - IC_Val1) + IC_Val2;
 			}
 
-			frequency1 = 3000000/Difference1;
+			frequency1 = 5000000/Difference1;
 			RPM1 = (frequency1/8)*60/3;
 			__HAL_TIM_SET_COUNTER(htim, 0);  // reset the counter
 			Is_First_Captured1 = 0; // set it back to false
@@ -202,7 +203,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 					Difference2 = (65535 - IC_Val3) + IC_Val4;
 				}
 
-				frequency2 = 3000000/Difference2;
+				frequency2 = 5000000/Difference2;
 				RPM2 = (frequency2/8)*60/3;
 				__HAL_TIM_SET_COUNTER(htim, 0);  // reset the counter
 				Is_First_Captured2 = 0; // set it back to false
@@ -249,7 +250,6 @@ int main(void)
   MX_TIM5_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-
   // TIM2 BROOM
 
 
@@ -274,8 +274,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  convert();
 	  control();
+	  if(flag_tim6 == 1){
 	  Status_SS();
+	  }
 
 
   }
@@ -570,7 +573,7 @@ static void MX_TIM6_Init(void)
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = 7200-1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 7000-1;
+  htim6.Init.Period = 7800-1;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
